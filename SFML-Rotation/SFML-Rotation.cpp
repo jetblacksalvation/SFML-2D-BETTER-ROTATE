@@ -33,20 +33,21 @@ void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
 int main()
 {
     sf::RenderWindow window({800,800}, "Rotation");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
     sf::Event event;
 
     sf::CircleShape player(10);
 
     player.setPosition(player_pos);
     sf::VertexArray lines(sf::LinesStrip, 5);
+    //i could use an array for this, but im too lazy :P
     sf::Vector2f point1(100,100);
     sf::Vector2f point2(200, 100);
     sf::Vector2f point3(200, 200);
     sf::Vector2f point4(100, 200);
     sf::Vector2f point10(100, 100);
-    //lines[2].position = sf::Vector2f(200, 200);
-    //lines[3].position = sf::Vector2f(100, 100);
+    
+
     std::cout << "Hello Rotation!\n";
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
