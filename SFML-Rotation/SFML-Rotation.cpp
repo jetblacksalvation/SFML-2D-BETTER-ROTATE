@@ -20,11 +20,11 @@ double distance(sf::Vector2f pos) {
 
 
 void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
-    
-    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) - 0.01f :NULL;// doing angle = (2*pi)- 0.01f lets you turn left when angle = 0
+    auto dist = distance(real);
+    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) :NULL;// doing angle = (2*pi) lets you turn left when angle = 0
     //rotate 
-    Projected[index].position.x = player_pos.x + (std::cosf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * distance(real));
-    Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * distance(real));
+    Projected[index].position.x = player_pos.x + (std::cosf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
+    Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
 
 }
 
