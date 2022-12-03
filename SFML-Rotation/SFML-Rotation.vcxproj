@@ -129,6 +129,9 @@
   <ItemGroup>
     <ClCompile Include="SFML-Rotation.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Arrow.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

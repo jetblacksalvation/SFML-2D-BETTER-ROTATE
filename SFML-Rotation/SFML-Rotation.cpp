@@ -12,7 +12,7 @@ int vx = 0, vy = 0;
 
 
 static const double pi = 3.14159265359;
-double angle = 0;
+float angle = 0;
 sf::Vector2f player_pos = {400,400};
 
 double distance(sf::Vector2f pos) {
@@ -26,27 +26,33 @@ void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
     //rotate 
     Projected[index].position.x = player_pos.x + (std::cosf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
-
+    Projected[index].color = sf::Color::Black;
 }
 
-void HandleKeys(bool keys[6]) {
+void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>&  world_Data) {
     float temp = 0;//change to the orientation of angle 
     if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
         if (keys[LEFT]) {
-            temp = pi ;
+            temp = pi/2 ;
         }
         if (keys[RIGHT]) {
-            temp = 0;
+            temp = (3*pi)/2;
         }
         if (keys[UP]) {
-            temp = pi/2;
+            temp = 0;
         }
         if (keys[DOWN]) {
-            temp = (3 * pi) / 2;
+            temp = pi;
         
         }
-        player_pos.x = player_pos.x + (std::cosf(angle+temp)) * 5;
-        player_pos.y = player_pos.y + (std::sinf(angle+temp)) * 5;
+        int x = 0;
+        for (auto iter : world_Data) {
+            iter[x].x = player_pos.x + (std::cosf(angle + temp)) * 5;
+            iter[x].y = player_pos.y + (std::sinf(angle + temp)) * 5;
+        }
+
+       /* player_pos.x = player_pos.x + (std::cosf(angle+temp)) * 5;
+        player_pos.y = player_pos.y + (std::sinf(angle+temp)) * 5;*/
     }
 
 
@@ -59,17 +65,17 @@ int main()
     window.setFramerateLimit(120);
     sf::Event event;
 
-    sf::CircleShape player(10);
+    sf::RectangleShape player({20,20});
 
-    player.setPosition(player_pos);
     sf::VertexArray lines(sf::LinesStrip, 5);
-    //i could use an array for this, but im too lazy :P
-    sf::Vector2f point1(100,100);
-    sf::Vector2f point2(200, 100);
-    sf::Vector2f point3(200, 200);
-    sf::Vector2f point4(100, 200);
-    sf::Vector2f point10(100, 100);
-    
+    //square 
+    std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
+    std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
+    sf::Texture img1;
+    if (!img1.loadFromFile("Arrow.png")) return 0; //this line loads the image AND kills your program if it doesn't load
+    sf::Sprite pic1;
+    pic1.setTexture(img1);
+
     int camera_plane = player_pos.y / 2;
     std::cout << "Hello Rotation!\n";
     while (window.isOpen()) {
@@ -108,8 +114,9 @@ int main()
             else keys[ROT_RIGHT] = false;
         }
 
-        {
-            HandleKeys(keys);
+        {        //input handleing here 
+
+            HandleKeys(keys, Level_Data);
             if (keys[ROT_LEFT]) {
                 angle -= 0.01;
             }
@@ -117,22 +124,23 @@ int main()
                 angle += 0.01;
             }
         }
-        //input handleing here 
-
-        Rotate(point1, lines, 0);
-        Rotate(point2, lines, 1);
-        Rotate(point3, lines, 2);
-        Rotate(point4, lines, 3);
-        Rotate(point10, lines, 4);
-
+        for (auto shapes : Level_Data) {
+            int x = 0;
+            for (auto shape_data : shapes) {
+                Rotate(shape_data, lines, x);
+                x++;
+            }
+        }
+        pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
         int camera_plane = player_pos.y / 2;//calculate the camera plane
-        player.setPosition(player_pos);
+        pic1.setPosition(player_pos);
 
 
-        window.clear(sf::Color::Black);
-        window.draw(player);
+        window.clear(sf::Color::White);
+        window.draw(pic1);
         window.draw(lines);
         window.display();
+
 
     }
 }
