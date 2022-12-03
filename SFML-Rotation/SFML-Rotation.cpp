@@ -8,6 +8,7 @@ bool keys[] = { false, false, false, false, false ,false }; //array to hold keyb
 enum DIRECTIONS { LEFT, RIGHT, UP, DOWN , ROT_LEFT, ROT_RIGHT }; //left is 0, right is 1, up is 2, down is 3
 
 
+int vx = 0, vy = 0;
 
 
 static const double pi = 3.14159265359;
@@ -15,7 +16,7 @@ double angle = 0;
 sf::Vector2f player_pos = {400,400};
 
 double distance(sf::Vector2f pos) {
-    return sqrtf(powf((pos.x - player_pos.x), 2) + powf((pos.y - player_pos.y), 2));
+    return sqrtf(powf(( player_pos.x - pos.x), 2) + powf(( player_pos.y- pos.y ), 2));
 }
 
 
@@ -28,6 +29,28 @@ void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
 
 }
 
+void HandleKeys(bool keys[6]) {
+    float temp = 0;//change to the orientation of angle 
+    if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
+        if (keys[LEFT]) {
+            temp = pi ;
+        }
+        if (keys[RIGHT]) {
+            temp = 0;
+        }
+        if (keys[UP]) {
+            temp = pi/2;
+        }
+        if (keys[DOWN]) {
+            temp = (3 * pi) / 2;
+        
+        }
+        player_pos.x = player_pos.x + (std::cosf(angle+temp)) * 5;
+        player_pos.y = player_pos.y + (std::sinf(angle+temp)) * 5;
+    }
+
+
+}
 
 
 int main()
@@ -47,7 +70,7 @@ int main()
     sf::Vector2f point4(100, 200);
     sf::Vector2f point10(100, 100);
     
-
+    int camera_plane = player_pos.y / 2;
     std::cout << "Hello Rotation!\n";
     while (window.isOpen()) {
         while (window.pollEvent(event)) {
@@ -84,20 +107,9 @@ int main()
             }
             else keys[ROT_RIGHT] = false;
         }
-        //input handleing here 
+
         {
-            if (keys[LEFT]) {
-                player_pos.x -= 1;
-            }
-            if (keys[RIGHT]) {
-                player_pos.x += 1;
-            }
-            if (keys[UP]) {
-                player_pos.y -= 1;
-            }
-            if (keys[DOWN]) {
-                player_pos.x += 1;
-            }
+            HandleKeys(keys);
             if (keys[ROT_LEFT]) {
                 angle -= 0.01;
             }
@@ -105,13 +117,20 @@ int main()
                 angle += 0.01;
             }
         }
+        //input handleing here 
+
         Rotate(point1, lines, 0);
         Rotate(point2, lines, 1);
         Rotate(point3, lines, 2);
         Rotate(point4, lines, 3);
         Rotate(point10, lines, 4);
 
+        int camera_plane = player_pos.y / 2;//calculate the camera plane
+        player.setPosition(player_pos);
+
+
         window.clear(sf::Color::Black);
+        window.draw(player);
         window.draw(lines);
         window.display();
 
