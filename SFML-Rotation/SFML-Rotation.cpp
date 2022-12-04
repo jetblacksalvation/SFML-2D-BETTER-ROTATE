@@ -22,14 +22,14 @@ double distance(sf::Vector2f pos) {
 
 void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
     auto dist = distance(real);
-    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) :NULL;// doing angle = (2*pi) lets you turn left when angle = 0
+    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi)-.01f :NULL;// doing angle = (2*pi) lets you turn left when angle = 0
     //rotate 
     Projected[index].position.x = player_pos.x + (std::cosf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].color = sf::Color::Black;
 }
 
-void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>&  world_Data) {
+void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Data) {
     float temp = 0;//change to the orientation of angle 
     if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
         if (keys[LEFT]) {
@@ -45,10 +45,12 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>&  world_Dat
             temp = pi;
         
         }
-        int x = 0;
-        for (auto iter : world_Data) {
-            iter[x].x = player_pos.x + (std::cosf(angle + temp)) * 5;
-            iter[x].y = player_pos.y + (std::sinf(angle + temp)) * 5;
+        for (auto& iter : *world_Data) {
+            for (auto& it : iter) {
+                it.x = it.x + (std::cosf(angle + temp)) * 5;
+                it.y = it.y + (std::sinf(angle + temp)) * 5;
+            }
+            
         }
 
        /* player_pos.x = player_pos.x + (std::cosf(angle+temp)) * 5;
@@ -64,9 +66,6 @@ int main()
     sf::RenderWindow window({800,800}, "Rotation");
     window.setFramerateLimit(120);
     sf::Event event;
-
-    sf::RectangleShape player({20,20});
-
     sf::VertexArray lines(sf::LinesStrip, 5);
     //square 
     std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
@@ -116,12 +115,12 @@ int main()
 
         {        //input handleing here 
 
-            HandleKeys(keys, Level_Data);
+            HandleKeys(keys, &Level_Data);
             if (keys[ROT_LEFT]) {
-                angle -= 0.01;
+                angle -= 0.05;
             }
             if (keys[ROT_RIGHT]) {
-                angle += 0.01;
+                angle += 0.05;
             }
         }
         for (auto shapes : Level_Data) {
@@ -131,9 +130,9 @@ int main()
                 x++;
             }
         }
-        pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
+        //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
         int camera_plane = player_pos.y / 2;//calculate the camera plane
-        pic1.setPosition(player_pos);
+        pic1.setPosition(player_pos.x -16, player_pos.y -16);//offset by half of pixel dimensions   
 
 
         window.clear(sf::Color::White);
