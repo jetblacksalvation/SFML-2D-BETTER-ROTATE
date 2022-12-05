@@ -2,7 +2,6 @@
 #include <math.h>
 #include <SFML/Graphics.hpp>
 
-
 bool keys[] = { false, false, false, false, false ,false }; //array to hold keyboard input\
 
 enum DIRECTIONS { LEFT, RIGHT, UP, DOWN , ROT_LEFT, ROT_RIGHT }; //left is 0, right is 1, up is 2, down is 3
@@ -22,7 +21,7 @@ double distance(sf::Vector2f pos) {
 
 void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
     auto dist = distance(real);
-    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi)-.01f :NULL;// doing angle = (2*pi) lets you turn left when angle = 0
+    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) -0.01f:NULL;// doing angle = (2*pi) lets you turn left when angle = 0
     //rotate 
     Projected[index].position.x = player_pos.x + (std::cosf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
@@ -47,8 +46,8 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Dat
         }
         for (auto& iter : *world_Data) {
             for (auto& it : iter) {
-                it.x = it.x + (std::cosf(angle + temp)) * 5;
-                it.y = it.y + (std::sinf(angle + temp)) * 5;
+                it.x += (std::cosf(angle + temp)) * 2;
+                it.y += (std::sinf(angle + temp)) * 2;
             }
             
         }
@@ -63,17 +62,25 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Dat
 
 int main()
 {
+    sf::CircleShape bullet(15);
+
     sf::RenderWindow window({800,800}, "Rotation");
     window.setFramerateLimit(120);
     sf::Event event;
     sf::VertexArray lines(sf::LinesStrip, 5);
     //square 
+
+
     std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
     std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
+
+    std::vector<sf::Vector2f> pixels({});
+    std::vector<float> pixel_angles({});
     sf::Texture img1;
     if (!img1.loadFromFile("Arrow.png")) return 0; //this line loads the image AND kills your program if it doesn't load
     sf::Sprite pic1;
     pic1.setTexture(img1);
+    pic1.setPosition(player_pos.x - 16, player_pos.y - 16);//offset by half of pixel dimensions   
 
     int camera_plane = player_pos.y / 2;
     std::cout << "Hello Rotation!\n";
@@ -111,6 +118,10 @@ int main()
                 keys[ROT_RIGHT] = true;
             }
             else keys[ROT_RIGHT] = false;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                pixels.emplace_back(player_pos);
+                pixel_angles.emplace_back(angle-pi/2);
+            }
         }
 
         {        //input handleing here 
@@ -123,19 +134,46 @@ int main()
                 angle += 0.05;
             }
         }
-        for (auto shapes : Level_Data) {
+        for (auto shapes : Level_Data) {//applies rotation formula to every object 
             int x = 0;
             for (auto shape_data : shapes) {
                 Rotate(shape_data, lines, x);
                 x++;
             }
         }
-        //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
+
+            //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
         int camera_plane = player_pos.y / 2;//calculate the camera plane
-        pic1.setPosition(player_pos.x -16, player_pos.y -16);//offset by half of pixel dimensions   
-
-
+        pic1.setRotation((angle - pi / 2)/(180/pi));
         window.clear(sf::Color::White);
+        
+        {
+
+            sf::VertexArray temp(sf::Lines, 2);
+
+            int x = 0;
+            for (auto& it : pixels) {
+                if (it.x > 800 and it.y>800 ) {
+                    pixels.erase(pixels.begin() + x);
+                    pixel_angles.erase(pixel_angles.begin() + x);
+                }
+                else {
+                    std::cout << pixel_angles[x] << " is angle\n";
+                    it.x += cos(pixel_angles[x]) * 2;
+                    it.y += sin(pixel_angles[x]) * 2;
+
+                    temp[0] = player_pos;
+                    temp[0].color = sf::Color::Black;
+                    temp[1].color = sf::Color::Black;
+                    temp[1] = it;
+
+                    x++;
+                }
+            }
+            
+            window.draw(temp);
+
+        }
         window.draw(pic1);
         window.draw(lines);
         window.display();
