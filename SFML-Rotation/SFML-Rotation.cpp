@@ -119,8 +119,7 @@ int main()
             }
             else keys[ROT_RIGHT] = false;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-                pixels.emplace_back(player_pos);
-                pixel_angles.emplace_back(angle-pi/2);
+                pixel_angles.emplace_back( -pi/2);
             }
         }
 
@@ -145,35 +144,29 @@ int main()
             //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
         int camera_plane = player_pos.y / 2;//calculate the camera plane
         pic1.setRotation((angle - pi / 2)/(180/pi));
-        window.clear(sf::Color::White);
         
-        {
+        
 
-            sf::VertexArray temp(sf::Lines, 2);
+        sf::VertexArray temp(sf::Lines, 2);
 
-            int x = 0;
-            for (auto& it : pixels) {
-                if (it.x > 800 and it.y>800 ) {
-                    pixels.erase(pixels.begin() + x);
-                    pixel_angles.erase(pixel_angles.begin() + x);
-                }
-                else {
-                    std::cout << pixel_angles[x] << " is angle\n";
-                    it.x += cos(pixel_angles[x]) * 2;
-                    it.y += sin(pixel_angles[x]) * 2;
+        int x = 0;
+        for (auto it : pixel_angles) {
+            temp[0].position.x = player_pos.x;
+            temp[0].position.y = player_pos.y;
 
-                    temp[0] = player_pos;
-                    temp[0].color = sf::Color::Black;
-                    temp[1].color = sf::Color::Black;
-                    temp[1] = it;
+            temp[1].position.x = player_pos.x+cosf(it) * 300;
+            temp[1].position.y = player_pos.y+sin(it) * 300;
 
-                    x++;
-                }
-            }
-            
-            window.draw(temp);
+            temp[0].color = sf::Color::Black;
+            temp[1].color = sf::Color::Black;
 
         }
+        //pixel_angles.clear();
+        window.clear(sf::Color::White);
+
+        window.draw(temp);
+
+        
         window.draw(pic1);
         window.draw(lines);
         window.display();
