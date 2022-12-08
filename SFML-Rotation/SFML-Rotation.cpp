@@ -75,7 +75,7 @@ int main()
     std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
 
     std::vector<sf::Vector2f> pixels({});
-    std::vector<float> pixel_angles({});
+    std::vector<float> pixel_angles({(float)pi/2});
     sf::Texture img1;
     if (!img1.loadFromFile("Arrow.png")) return 0; //this line loads the image AND kills your program if it doesn't load
     sf::Sprite pic1;
@@ -118,10 +118,7 @@ int main()
                 keys[ROT_RIGHT] = true;
             }
             else keys[ROT_RIGHT] = false;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-                pixels.emplace_back(player_pos);
-                pixel_angles.emplace_back(angle-pi/2);
-            }
+
         }
 
         {        //input handleing here 
@@ -146,34 +143,20 @@ int main()
         int camera_plane = player_pos.y / 2;//calculate the camera plane
         pic1.setRotation((angle - pi / 2)/(180/pi));
         window.clear(sf::Color::White);
-        
-        {
 
+        for (float it = 0; it < pi * 2; it+=0.1) {
             sf::VertexArray temp(sf::Lines, 2);
+            temp[0].position.x = player_pos.x + cos(-it) * 300;
+            temp[0].position.y = player_pos.y + sin(-it) * 300;
+            temp[1].position = player_pos;
 
-            int x = 0;
-            for (auto& it : pixels) {
-                if (it.x > 800 and it.y>800 ) {
-                    pixels.erase(pixels.begin() + x);
-                    pixel_angles.erase(pixel_angles.begin() + x);
-                }
-                else {
-                    std::cout << pixel_angles[x] << " is angle\n";
-                    it.x += cos(pixel_angles[x]) * 2;
-                    it.y += sin(pixel_angles[x]) * 2;
+            temp[0].color = sf::Color::Black;
+            temp[1].color = sf::Color::Black;
 
-                    temp[0] = player_pos;
-                    temp[0].color = sf::Color::Black;
-                    temp[1].color = sf::Color::Black;
-                    temp[1] = it;
-
-                    x++;
-                }
-            }
-            
             window.draw(temp);
-
         }
+
+
         window.draw(pic1);
         window.draw(lines);
         window.display();
