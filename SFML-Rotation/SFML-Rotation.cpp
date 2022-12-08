@@ -1,8 +1,4 @@
 
-Eduardo Dominguez Ramirez <coolanimeguy666@gmail.com>
-12:06 PM (0 minutes ago)
-to me
-
 #include <iostream>
 #include <math.h>
 #include <SFML/Graphics.hpp>
@@ -32,6 +28,17 @@ void Rotate(sf::Vector2f& real, sf::VertexArray& Projected, size_t index) {
     Projected[index].position.y = player_pos.y + (sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].color = sf::Color::Black;
 }
+sf::Vector2f Point_Rotate(sf::Vector2f real) {
+    auto dist = distance(real);
+    auto ang = atan2f(real.x - player_pos.x, real.y - player_pos.y);
+    sf::Vector2f temp;
+    //std::cout << angle << " + " << ang << std::endl;
+    temp.x = player_pos.x + (cosf(angle + ang) * dist);
+    temp.y = player_pos.y + (sinf(angle + ang) * dist);
+    return temp;
+
+}
+
 
 void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Data) {
     float temp = 0;//change to the orientation of angle 
@@ -76,8 +83,9 @@ int main()
     sf::VertexArray lines(sf::LinesStrip, 5);
     //square 
 
-
-    std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
+    //vvv working-er data 
+    //std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
+    std::vector<sf::Vector2f> points({ {200,200}, {200,100}, {100,100}, {100,200}, {200,200} });
     std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
 
     std::vector<sf::Vector2f> pixels({});
@@ -150,13 +158,11 @@ int main()
         window.clear(sf::Color::White);
 
         for (float it = 0; it < pi * 2; it+=0.1) {
-            sf::VertexArray temp(sf::Lines, 2);
-            temp[0].position.x = player_pos.x + cos(-it) * 300;
-            temp[0].position.y = player_pos.y + sin(-it) * 300;
-            temp[1].position = player_pos;
+
+
             
-            float under_ray = (player_pos.y-(sinf(-it)+player_pos.y));//demoninator
-            float top_ray = (player_pos.x - (cosf(-it)+player_pos.x));//slope of ray - seperating the two in case of under being undefined 
+            float under_ray = (player_pos.y-(sinf(it)+player_pos.y));//demoninator
+            float top_ray = (player_pos.x - (cosf(it)+player_pos.x));//slope of ray - seperating the two in case of under being undefined 
 
             float y_inter = player_pos.y;
             for(auto shape: Level_Data){//iterates through shapes
@@ -166,31 +172,30 @@ int main()
                 values.iter !=  (shape.end()-1); values.iter ++, values.first = *(values.iter), values.second = *(values.iter+1)
                 )
                 {
-                    float top_ray_temp = values.first.y - values.second.y;
-                    std::cout<<values.second.y<<std::endl;
+                    sf::Vector2f first = Point_Rotate(values.first), second= Point_Rotate(values.second);
 
-                    float under_ray_temp = values.first.x - values.second.x;
-                    std::cout<<values.second.x<<std::endl;
-                    
-                    // if(under_ray == 0 || under_ray_temp ==0){
-                    //     puts("fix this...\n");
-                    //     exit(-1);
-                    // }
-                    float y_inter_temp = values.first.y -((top_ray_temp/under_ray_temp)*values.first.x);//y intercept using slope formula
+
+
+                    float top_ray_temp = first.y - second.y;
+                    //std::cout<<second.y<<std::endl;
+
+                    float under_ray_temp = first.x - second.x;
+
+                    float y_inter_temp = first.y -((top_ray_temp/under_ray_temp)*first.x);//y intercept using slope formula
                     //draw a circle at inter section
 
                     float inter_x  = (((-(top_ray/under_ray))*player_pos.x)+player_pos.y - y_inter_temp)/((top_ray_temp/under_ray_temp)-(top_ray/under_ray));
-                    if(inter_x < values.second.x && inter_x > values.first.x){
-                    intersect.setPosition(inter_x, ((top_ray_temp/under_ray_temp)*inter_x)+y_inter_temp);
+                    //if(inter_x < second.x && inter_x > first.x){
+                    intersect.setPosition(inter_x-5, ((top_ray_temp/under_ray_temp)*inter_x)+y_inter_temp-5);
                     window.draw(intersect);
-                    }
+                    //}
                 }
 
             }
-            temp[0].color = sf::Color::Black;
-            temp[1].color = sf::Color::Black;
+            //temp[0].color = sf::Color::Black;
+            //temp[1].color = sf::Color::Black;
 
-            window.draw(temp);
+            //window.draw(temp);
         }
 
 
