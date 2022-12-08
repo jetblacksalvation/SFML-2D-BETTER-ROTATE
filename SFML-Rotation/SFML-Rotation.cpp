@@ -72,8 +72,11 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Dat
 }
 
 sf::CircleShape intersect(2*pi);
+sf::RectangleShape row({ 0,0 });
 int main()
 {
+    row.setFillColor(sf::Color::Black);
+    
     intersect.setFillColor(sf::Color::Black);
     sf::CircleShape bullet(15);
 
@@ -84,10 +87,10 @@ int main()
     //square 
 
     //vvv working-er data 
-    //std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
-    std::vector<sf::Vector2f> points({ {200,200}, {200,100}, {100,100}, {100,200}, {200,200} });
-    //std::vector<sf::Vector2f> shape({ { 400,400 }, { 450,500 }, { 500,500 } });
-    std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
+    std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
+    //std::vector<sf::Vector2f> points({ {200,200}, {200,100}, {100,100}, {100,200}, {200,200} });
+    std::vector<sf::Vector2f> shape({ { 400,400 }, { 450,500 }, { 500,500 },{400,400} });
+    std::vector<std::vector<sf::Vector2f>> Level_Data({ points,shape });
 
     std::vector<sf::Vector2f> pixels({});
     sf::Texture img1;
@@ -145,20 +148,14 @@ int main()
                 angle += 0.05;
             }
         }
-        for (auto& shapes : Level_Data) {//applies rotation formula to every object 
-            int x = 0;
-            for (auto& shape_data : shapes) {
-                Rotate(shape_data, lines, x);
-                x++;
-            }
-        }
-
+ 
             //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
         int camera_plane = player_pos.y / 2;//calculate the camera plane
         pic1.setRotation((angle - pi / 2)/(180/pi));
         window.clear(sf::Color::White);
-
-        for (float it = 0; it < pi * 2; it+=0.1) {
+        (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) - 0.01f : (float)NULL;// doing angle = (2*pi) lets you turn left when angle = 0
+        int x = 0;
+        for (float it = 0; it < 2*pi; it+=0.1) {//cant be bothered to fix 360 view 
 
 
             
@@ -189,26 +186,21 @@ int main()
                     
 
                     if ((inter_x < ((first.x > second.x) ? first.x : second.x)) && inter_x > (((first.x < second.x) ? first.x : second.x))) {
-                        intersect.setPosition(inter_x - 5, ((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp - 5);
-                        window.draw(intersect);
+                        row.setSize({ 10,(((top_ray_temp / under_ray_temp) * inter_x) + y_inter_temp)});
+                        x++;
+                        row.setFillColor(sf::Color::Black);
+                        
+                        row.setPosition(x*15, 400 -(((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp) / 2);
+                        //intersect.setPosition(inter_x - 5, ((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp - 5);
+                        window.draw(row);
                     }
 
-                    /*if((inter_x < (second.x > first.x)?second.x:first.x) && ( inter_x > (second.x < first.x)? second.x: first.x)){
-                        intersect.setPosition(inter_x-5, ((top_ray_temp/under_ray_temp)*inter_x)+y_inter_temp-5);
-                        window.draw(intersect);
-                    }*/
                 }
 
             }
-            //temp[0].color = sf::Color::Black;
-            //temp[1].color = sf::Color::Black;
-
-            //window.draw(temp);
         }
 
-
-        window.draw(pic1);
-        window.draw(lines);
+        x = 0;
         window.display();
 
 
