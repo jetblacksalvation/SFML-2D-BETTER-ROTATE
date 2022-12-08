@@ -90,7 +90,7 @@ int main()
     std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
     //std::vector<sf::Vector2f> points({ {200,200}, {200,100}, {100,100}, {100,200}, {200,200} });
     std::vector<sf::Vector2f> shape({ { 400,400 }, { 450,500 }, { 500,500 },{400,400} });
-    std::vector<std::vector<sf::Vector2f>> Level_Data({ points,shape });
+    std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
 
     std::vector<sf::Vector2f> pixels({});
     sf::Texture img1;
@@ -142,10 +142,10 @@ int main()
 
             HandleKeys(keys, &Level_Data);
             if (keys[ROT_LEFT]) {
-                angle -= 0.05;
+                angle -= 0.01;
             }
             if (keys[ROT_RIGHT]) {
-                angle += 0.05;
+                angle += 0.01;
             }
         }
  
@@ -170,30 +170,28 @@ int main()
                 values.iter !=  (shape.end()-1); values.iter ++, values.first = *(values.iter), values.second = *(values.iter+1)
                 )
                 {
-                    sf::Vector2f first = Point_Rotate(values.first), second= Point_Rotate(values.second);
+                        sf::Vector2f first = Point_Rotate(values.first), second = Point_Rotate(values.second);
+                        float top_ray_temp = first.y - second.y;
+                        //std::cout<<second.y<<std::endl;
 
+                        float under_ray_temp = first.x - second.x;
 
+                        float y_inter_temp = first.y - ((top_ray_temp / under_ray_temp) * first.x);//y intercept using slope formula
+                        //draw a circle at inter section
 
-                    float top_ray_temp = first.y - second.y;
-                    //std::cout<<second.y<<std::endl;
+                        float inter_x = (((-(top_ray / under_ray)) * player_pos.x) + player_pos.y - y_inter_temp) / ((top_ray_temp / under_ray_temp) - (top_ray / under_ray));
 
-                    float under_ray_temp = first.x - second.x;
+                    if (angle > 0 + atan2f(inter_x - player_pos.x, y_inter_temp -player_pos.y) && angle < pi+ atan2f(inter_x - player_pos.x, y_inter_temp - player_pos.y)){
 
-                    float y_inter_temp = first.y -((top_ray_temp/under_ray_temp)*first.x);//y intercept using slope formula
-                    //draw a circle at inter section
-
-                    float inter_x  = (((-(top_ray/under_ray))*player_pos.x)+player_pos.y - y_inter_temp)/((top_ray_temp/under_ray_temp)-(top_ray/under_ray));
-                    
-
-                    if ((inter_x < ((first.x > second.x) ? first.x : second.x)) && inter_x > (((first.x < second.x) ? first.x : second.x))) {
-                        row.setSize({ 10,(((top_ray_temp / under_ray_temp) * inter_x) + y_inter_temp)});
-                        x++;
-                        row.setFillColor(sf::Color::Black);
-                        
-                        row.setPosition(x*15, 400 -(((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp) / 2);
-                        //intersect.setPosition(inter_x - 5, ((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp - 5);
-                        window.draw(row);
+                        if ((inter_x < ((first.x > second.x) ? first.x : second.x)) && inter_x > (((first.x < second.x) ? first.x : second.x))) {
+                            row.setSize({ 4,(float)((((top_ray_temp / under_ray_temp) * inter_x) + y_inter_temp) / distance({inter_x, y_inter })) });
+                            row.setFillColor(sf::Color::Black);
+                            row.setPosition(-10 + (x * 5), 400 -distance({ inter_x, y_inter }));
+                            //intersect.setPosition(inter_x - 5, ((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp - 5);
+                            window.draw(row);
+                        }
                     }
+                    x++;
 
                 }
 
