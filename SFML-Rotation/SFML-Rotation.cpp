@@ -71,7 +71,7 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Dat
 
 }
 
-sf::CircleShape intersect(10);
+sf::CircleShape intersect(2*pi);
 int main()
 {
     intersect.setFillColor(sf::Color::Black);
@@ -86,6 +86,7 @@ int main()
     //vvv working-er data 
     //std::vector<sf::Vector2f> points({ {100,100}, {200, 100}, {200,200 }, {100,200} , {100,100} });//last index is so that lines can wrap back to start 
     std::vector<sf::Vector2f> points({ {200,200}, {200,100}, {100,100}, {100,200}, {200,200} });
+    //std::vector<sf::Vector2f> shape({ { 400,400 }, { 450,500 }, { 500,500 } });
     std::vector<std::vector<sf::Vector2f>> Level_Data({ points });
 
     std::vector<sf::Vector2f> pixels({});
@@ -185,10 +186,17 @@ int main()
                     //draw a circle at inter section
 
                     float inter_x  = (((-(top_ray/under_ray))*player_pos.x)+player_pos.y - y_inter_temp)/((top_ray_temp/under_ray_temp)-(top_ray/under_ray));
-                    //if(inter_x < second.x && inter_x > first.x){
-                    intersect.setPosition(inter_x-5, ((top_ray_temp/under_ray_temp)*inter_x)+y_inter_temp-5);
-                    window.draw(intersect);
-                    //}
+                    
+
+                    if ((inter_x < ((first.x > second.x) ? first.x : second.x)) && inter_x > (((first.x < second.x) ? first.x : second.x))) {
+                        intersect.setPosition(inter_x - 5, ((top_ray_temp / under_ray_temp)* inter_x) + y_inter_temp - 5);
+                        window.draw(intersect);
+                    }
+
+                    /*if((inter_x < (second.x > first.x)?second.x:first.x) && ( inter_x > (second.x < first.x)? second.x: first.x)){
+                        intersect.setPosition(inter_x-5, ((top_ray_temp/under_ray_temp)*inter_x)+y_inter_temp-5);
+                        window.draw(intersect);
+                    }*/
                 }
 
             }
