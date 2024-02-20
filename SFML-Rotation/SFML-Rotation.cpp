@@ -33,8 +33,8 @@ sf::VertexArray Rotate3DView(sf::Vector2f real) {
     float start = angle - (pi / 4);
     float end = angle + (pi / 4);
     //real is the real pos of point 
-
-    sf::VertexArray line[2];
+    sf::VertexArray line;
+    return line;
 
 
 }
