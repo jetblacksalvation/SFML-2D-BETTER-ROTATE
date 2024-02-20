@@ -3,12 +3,12 @@
 #include <SFML/Graphics.hpp>
 
 bool keys[] = { false, false, false, false, false ,false }; //array to hold keyboard input\
+    bool render3d = false;
 
 enum DIRECTIONS { LEFT, RIGHT, UP, DOWN , ROT_LEFT, ROT_RIGHT }; //left is 0, right is 1, up is 2, down is 3
 
 
 int vx = 0, vy = 0;
-
 
 static const double pi = 3.14159265359;
 float angle = 0;
@@ -19,7 +19,7 @@ double distance(sf::Vector2f pos) {
 }
 
 
-void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
+void Rotate2DOverview(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
     auto dist = distance(real);
     (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) -0.01f:NULL;// doing angle = (2*pi) lets you turn left when angle = 0
     //rotate 
@@ -27,9 +27,21 @@ void Rotate(sf::Vector2f real, sf::VertexArray& Projected, size_t index) {
     Projected[index].position.y = player_pos.y + (std::sinf(angle + atan2f(real.x - player_pos.x, real.y - player_pos.y)) * dist);
     Projected[index].color = sf::Color::Black;
 }
+sf::VertexArray Rotate3DView(sf::Vector2f real) {
+    (angle > 2 * pi) ? angle = 0 : (angle < 0) ? angle = (2 * pi) - 0.01f : NULL;// doing angle = (2*pi) lets you turn left when angle = 0
+    //get like 45 left and 45 right 
+    float start = angle - (pi / 4);
+    float end = angle + (pi / 4);
+    //real is the real pos of point 
 
-void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Data) {
+    sf::VertexArray line[2];
+
+
+}
+
+void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>&  world_Data) {
     float temp = 0;//change to the orientation of angle 
+    
     if (keys[LEFT] || keys[RIGHT] || keys[UP] || keys[DOWN]) {
         if (keys[LEFT]) {
             temp = pi/2 ;
@@ -44,7 +56,7 @@ void HandleKeys(bool keys[6], std::vector<std::vector<sf::Vector2f>>*  world_Dat
             temp = pi;
         
         }
-        for (auto& iter : *world_Data) {
+        for (auto& iter : world_Data) {
             for (auto& it : iter) {
                 it.x += (std::cosf(angle + temp)) * 2;
                 it.y += (std::sinf(angle + temp)) * 2;
@@ -67,7 +79,7 @@ int main()
     sf::RenderWindow window({800,800}, "Rotation");
     window.setFramerateLimit(120);
     sf::Event event;
-    sf::VertexArray lines(sf::LinesStrip, 5);
+    std::unique_ptr<sf::VertexArray>lines;
     //square 
 
 
@@ -81,6 +93,8 @@ int main()
     sf::Sprite pic1;
     pic1.setTexture(img1);
     pic1.setPosition(player_pos.x - 16, player_pos.y - 16);//offset by half of pixel dimensions   
+
+    bool render3d = false;
 
     int camera_plane = player_pos.y / 2;
     std::cout << "Hello Rotation!\n";
@@ -121,11 +135,14 @@ int main()
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
                 pixel_angles.emplace_back( -pi/2);
             }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::O)) {
+                render3d = !render3d;
+            }
         }
 
         {        //input handleing here 
 
-            HandleKeys(keys, &Level_Data);
+            HandleKeys(keys, Level_Data);
             if (keys[ROT_LEFT]) {
                 angle -= 0.05;
             }
@@ -133,42 +150,66 @@ int main()
                 angle += 0.05;
             }
         }
+        //clearing here for more flexibility.
+        window.clear(sf::Color::White);
+
+
         for (auto shapes : Level_Data) {//applies rotation formula to every object 
             int x = 0;
-            for (auto shape_data : shapes) {
-                Rotate(shape_data, lines, x);
-                x++;
+
+            if (not render3d)
+            {
+                window.draw(pic1);
+
+                lines = std::make_unique< sf::VertexArray>(sf::LinesStrip, shapes.size());
+
+                for (auto shape_data : shapes) {
+
+                    Rotate2DOverview(shape_data, *lines, x);
+                    x++;
+                }
+                window.draw(*lines);
             }
+            else 
+            {
+                std::vector<sf::VertexArray> arrays;
+                sf::VertexArray line(sf::LineStrip, 2);
+
+
+                for (auto shape_data : shapes) {
+
+                    sf::VertexArray line = Rotate3DView(shape_data);
+
+                    arrays.push_back(line);
+                }
+
+            }
+                
         }
 
             //pic1.setRotation(angle*180/pi);//goofy azz function uses angles and not radians :P 
-        int camera_plane = player_pos.y / 2;//calculate the camera plane
+        //int camera_plane = player_pos.y / 2;//calculate the camera plane
+
         pic1.setRotation((angle - pi / 2)/(180/pi));
         
         
 
-        sf::VertexArray temp(sf::Lines, 2);
 
-        int x = 0;
-        for (auto it : pixel_angles) {
-            temp[0].position.x = player_pos.x;
-            temp[0].position.y = player_pos.y;
+        //for (auto it : pixel_angles) {
+        //    temp[0].position.x = player_pos.x;
+        //    temp[0].position.y = player_pos.y;
 
-            temp[1].position.x = player_pos.x+cosf(it) * 300;
-            temp[1].position.y = player_pos.y+sin(it) * 300;
+        //    temp[1].position.x = player_pos.x+cosf(it) * 300;
+        //    temp[1].position.y = player_pos.y+sin(it) * 300;
 
-            temp[0].color = sf::Color::Black;
-            temp[1].color = sf::Color::Black;
+        //    temp[0].color = sf::Color::Black;
+        //    temp[1].color = sf::Color::Black;
 
-        }
+        //}
         //pixel_angles.clear();
-        window.clear(sf::Color::White);
 
-        window.draw(temp);
 
         
-        window.draw(pic1);
-        window.draw(lines);
         window.display();
 
 
